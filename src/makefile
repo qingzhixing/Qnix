@@ -13,3 +13,9 @@ clean:
 .PHONY: bochs
 bochs: 
 	bochs -q 
+
+compile_run: boot.asm
+	make clean
+	make boot.bin
+	make master.img
+	make bochs

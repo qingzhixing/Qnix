@@ -11,12 +11,32 @@ mov es,ax
 mov ss,ax
 mov sp,0x7c00
 
+xchg bx,bx          ;bochs魔术断点
+
+mov si,booting
+call print
+
 ; 0xb8000 为文本显示器内存区域
-mov ax,0xb800
-mov ds,ax
-mov byte [0], 'Q'
-mov byte [2], 'Z'
-mov byte [4], 'X'
+;mov ax,0xb800
+;mov ds,ax
+;mov byte [0], 'Q'
+;mov byte [2], 'Z'
+;mov byte [4], 'X'
+
+print:
+    mov ah,0x0e
+.next:
+    mov al,[si]
+    cmp al,0
+    jz .done
+    int 0x10
+    inc si
+    jmp .next
+.done:
+    ret
+
+booting:
+    db "Booting Qnix...", 10, 13, 0 ;\n\r\0
 
 ; 阻塞
 jmp $
