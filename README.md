@@ -6,4 +6,5 @@ nasm+bochs
 
 ## run:
 cd src/
+
 make compile_run
