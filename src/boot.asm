@@ -20,6 +20,12 @@ mov bl,1            ;读取扇区数量
 
 call read_disk
 
+mov edi,0x1000      ;读取的目标内存
+mov ecx,2           ;起始扇区
+mov bl,1            ;读取扇区数量 
+
+call write_disk
+
 ; 阻塞
 jmp $
 
@@ -89,6 +95,76 @@ read_disk:
             mov [edi],ax
             add edi,2; 往后继续读
         loop .readw
+        ret
+
+
+
+write_disk:
+    ;设置读写扇区的数量
+    mov dx,0x1f2
+    mov al,bl
+    out dx,al
+
+    inc dx; 0x1f3
+    mov al,cl; 起始扇区的前八位
+    out dx,al
+
+    inc dx; 0x1f4
+    shr ecx,8
+    mov al,cl; 起始扇区的中八位
+    out dx,al
+
+    inc dx; 0x1f5
+    shr ecx,8
+    mov al,cl; 起始扇区的后八位
+    out dx,al
+
+    inc dx; 0x1f6
+    mov ecx,8
+    and cl,0b1111; 将高四位设置为0
+
+    mov al,0b1110_0000
+    or al,cl
+    out dx,al; 主盘 - LBA模式 
+
+    inc dx;0x1f7
+    mov al,0x30; 写硬盘
+    out dx,al
+
+    xor ecx,ecx; mov ecx,0
+    mov cl,bl; 得到读写扇区的数量
+
+    .write:
+        push cx; 保存cx
+        call .writes; 写一个扇区
+        call .waits; 等待硬盘繁忙结束
+        pop cx; 恢复cx
+        loop .write
+    ret
+
+    .waits:
+        mov dx,0x1f7
+        .check:
+            in al,dx
+            jmp $+2; nop 直接跳转到下一行
+            jmp $+2
+            jmp $+2; 一点延迟
+            and al,0b1000_0000
+            cmp al,0b0000_0000; 硬盘不繁忙
+            jnz .check
+        ret
+
+    .writes:
+        mov dx,0x1f0
+        mov cx,256; 一个扇区 256 bits
+        .writew:
+            mov ax,[edi]
+            out dx,ax
+            jmp $+2
+            jmp $+2
+            jmp $+2; 延迟
+            add edi,2; 往后继续读
+        loop .writew
         ret
 
 ; 0xb8000 为文本显示器内存区域
