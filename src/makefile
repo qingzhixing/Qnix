@@ -22,3 +22,4 @@ compile_run: boot.asm
 	make loader.bin
 	make master.img
 	make bochs
+	make clean
