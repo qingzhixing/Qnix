@@ -1,25 +1,21 @@
-%.bin: %.asm
+BUILD:=../build
+SRC:=.
+
+$(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
+	$(shell mkdir -p $(BUILD)/boot)
 	nasm -f bin $< -o $@
 
+$(BUILD)/master.img: $(BUILD)/boot/boot.bin \
+	$(BUILD)/boot/loader.bin
 
-master.img: boot.bin loader.bin
-	yes | bximage -q -hd=16 -mode=create -sectsize=512 -imgmode=flat master.img
-	dd if=boot.bin of=master.img bs=512 count=1 conv=notrunc 
-	dd if=loader.bin conv=notrunc of=master.img bs=512 count=4 seek=2 conv=notrunc 
+	yes | bximage -q -hd=16 -mode=create -sectsize=512 -imgmode=flat $@
+	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc 
+	dd if=$(BUILD)/boot/loader.bin conv=notrunc of=$@ bs=512 count=4 seek=2 conv=notrunc 
 
 .PHONY: clean 
 clean:
-	rm -rf *.bin 
-	rm -rf *.img
+	rm -rf $(BUILD)
 
 .PHONY: bochs
-bochs: 
+bochs: $(BUILD)/master.img
 	bochs -q 
-
-compile_run: boot.asm
-	make clean
-	make boot.bin
-	make loader.bin
-	make master.img
-	make bochs
-	make clean
