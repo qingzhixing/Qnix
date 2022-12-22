@@ -1,9 +1,18 @@
 BUILD:=../build
 SRC:=.
 
+ENTRYPOINT:=0x10000
+
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(BUILD)/boot)
 	nasm -f bin $< -o $@
+
+$(BUILD)/kernel/%.o: $(SRC)/kernel/%.asm
+	$(shell mkdir -p $(BUILD)/kernel)
+	nasm -f elf32 $< -o $@
+
+$(BUILD)/kernel.bin: $(BUILD)/kernel/start.o 
+	ld -m elf_i386 -static $^ -o $@ -Ttext $(ENTRYPOINT)
 
 $(BUILD)/master.img: $(BUILD)/boot/boot.bin \
 	$(BUILD)/boot/loader.bin
@@ -19,3 +28,5 @@ clean:
 .PHONY: bochs
 bochs: $(BUILD)/master.img
 	bochs -q 
+
+test: $(BUILD)/kernel.bin

@@ -101,10 +101,6 @@ protected_mode:
 
     mov esp,0x10000; 修改栈顶 0x7e00~0x9fbff任选一个地址 操作系统加载地址
 
-    mov byte [0xb8000], 'P'
-
-    mov byte [0x200000], 'P'
-
 jmp $; 阻塞
 
 code_selector equ (1 << 3)
