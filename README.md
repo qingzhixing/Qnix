@@ -1,5 +1,6 @@
 # Qnix
 学习操作系统实现
+目前在看OsElephant,学习完后会继续更新
 
 ## 环境：
 nasm+bochs
