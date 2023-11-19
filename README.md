@@ -24,6 +24,18 @@ Bochs x86 Emulator 2.6.11
 
 **NASM** version 2.14.02
 
+## 如何运行
+
+在src目录下运行 `make bochs` 即可运行代码
+
+**烧录入USB:**
+
+重要事项！！
+
+请先使用 `lsblk` 找到要烧录的USB名称，然后再修改makefile中相应位置的名称
+
+否则误操作会造成 **数据丢失**!!!!
+
 ## 参考视频
 
 [操作系统实现 - 001.1 学习笔记](https://www.bilibili.com/video/BV1qM4y127om/?spm_id_from=333.999.top_right_bar_window_history.content.click&vd_source=7aca0011cad4c76468be9e183b41c88a)
