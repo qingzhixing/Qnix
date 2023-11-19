@@ -31,5 +31,11 @@
 *.out
 *.app
 
+# Bochs
+*.disk
+*.img
+*.bin
+bx_enh_dbg.ini
+
 # vscode
 .vscode
