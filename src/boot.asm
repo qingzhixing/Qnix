@@ -9,21 +9,36 @@ mov ax,0
 mov ds,ax
 mov es,ax
 mov ss,ax
-
 ; 初始化栈指针
 mov sp,0x7c00
 
-; 初始化屏幕
-mov ax,0xb800
-mov ds,ax
-; 此时ds指向显存段基址
-; 显存地址: 0xB800 ~ 0xBFFFF
+xchg bx,bx
 
-; 将屏幕第一个字符初始化为'H'
-mov byte [0x00], 'H'
+; 打印booting
+; si:变址寄存器
+mov si,booting
+call print
 
 ; 阻塞
 jmp $
+
+print:
+    mov ah,0x0e
+    .loop:
+        mov al,[si]
+        cmp al,0
+        je .done
+
+        int 0x10
+        inc si
+        
+        jmp .loop
+    .done:
+        ret
+
+booting:
+    ; 10,13,0 : \n \r \0
+    db "Booting Qnix...",10,13,0
 
 ; 填充 0 到510字节
 ; $ 当前行字节偏移
