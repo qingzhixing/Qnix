@@ -22,6 +22,8 @@ call print
 ; 阻塞
 jmp $
 
+; 打印字符串
+; 调用方法: 将字符串地址存入 si
 print:
     mov ah,0x0e
     .loop:
