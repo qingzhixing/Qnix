@@ -127,8 +127,17 @@ ReadDisk:
         jmp $+2     ; 直接跳转到下一行，用于产生延迟
         jmp $+2     ; 产生的延迟比nop多
 
-        mov si,readDiskMsg
-        call Print
+        ; 判断是否产生错误
+        push dx
+        mov dx,ax
+        and dl,0b0000_0001
+        cmp dl,0b0000_0001
+        pop dx
+        
+        jne .Then
+        call .ShowErrorMsg
+
+        .Then:
 
         and al,0b1000_1000
         cmp al,0b0000_1000
@@ -161,6 +170,10 @@ ReadDisk:
         loop .ReadOneBlock
 
     ret
+    .ShowErrorMsg:
+        mov si,diskErrorMsg
+        call Print
+        ret
 
 
 ; 写入磁盘
@@ -225,6 +238,18 @@ WriteDisk:
         jmp $+2     ; 直接跳转到下一行，用于产生延迟
         jmp $+2     ; 产生的延迟比nop多
 
+        ; 判断是否产生错误
+        push dx
+        mov dx,ax
+        and dl,0b0000_0001
+        cmp dl,0b0000_0001
+        pop dx
+        
+        jne .Then
+        call .ShowErrorMsg
+
+        .Then:
+
         and al,0b1000_0000
         cmp al,0b0000_0000
         ; 第七位为0，不繁忙则准备完毕:
@@ -258,6 +283,11 @@ WriteDisk:
 
     ret
 
+    .ShowErrorMsg:
+        mov si,diskErrorMsg
+        call Print
+        ret
+
 ErrorOccur:
     mov si,.msg
     call Print
@@ -270,6 +300,8 @@ booting:
     db "Booting Qnix...",10,13,0
 readDiskMsg:
     db "Reading Disk...",10,13,0
+diskErrorMsg:
+    db "Disk Error Occured!",10,13,0
 FillSector:
     ; 填充 0 到 510字节
     ; $ 当前行字节偏移
