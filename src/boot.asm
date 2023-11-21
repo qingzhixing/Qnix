@@ -1,5 +1,10 @@
 [org 0x7c00]
 
+; Loader Const
+LOADER_SECTOR_LBA equ 0x2
+LOADER_SECTOR_COUNT equ 4
+LOADER_BASE_ADDR equ 0x1000
+
 InitializeRegister:
     ; 初始化段寄存器
     mov ax,0
@@ -18,22 +23,23 @@ int 0x10
 mov si,booting
 call Print
 
-call BochsMagicBreak
-
 ; 读取loader到内存
 ; 0x5XX ~ 0x7c00是计算机的OS Load Area
 ; 内存分布: https://www.ruanyifeng.com/blog/2015/09/0x7c00.html
-mov edi,0x1000
-mov ecx,0
-mov bl,1
+mov edi,LOADER_BASE_ADDR
+mov ecx,LOADER_SECTOR_LBA
+mov bl,LOADER_SECTOR_COUNT
 call ReadDisk
 
-mov edi,0x1000
-mov ecx,2
-mov bl,1
-call WriteDisk
+; 校验loader
+mov ax,[LOADER_BASE_ADDR]
+cmp ax,0xaa55
+jne ErrorOccur
 
 call BochsMagicBreak
+
+; 跳转到loader
+jmp LOADER_BASE_ADDR+2
 
 ; 阻塞
 jmp $
@@ -248,10 +254,13 @@ WriteDisk:
 
     ret
 
-    
-
-
-
+ErrorOccur:
+    mov si,.msg
+    call Print
+    hlt ; CPU停止
+    jmp $ ; 阻塞
+    .msg:
+        dd "Booting Error Occured!:(",10,13,0
 booting:
     ; 10,13,0 : \n \r \0
     db "Booting Qnix...",10,13,0

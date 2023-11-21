@@ -1,18 +1,23 @@
-boot.bin:boot.asm
-	nasm -f bin boot.asm -o boot.bin
+%.bin:%.asm
+	nasm -f bin $< -o $@
 
-master.img:boot.bin
+LOADER_SECTOR_LBA = 2
+LOADER_SECTOR_COUNT = 4
+master.img:boot.bin loader.bin
 	yes | bximage -q -hd=16M -mode=create -sectsize=512 -imgmode=flat master.img
 	dd if=boot.bin of=master.img bs=512 count=1 conv=notrunc
-
+	dd if=loader.bin of=master.img bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
 
 .PHONY: clean
 clean:
 	rm -f *.bin
 	rm -f *.img
 
+.PHONY: build
+build:master.img
+
 .PHONY: bochs
-bochs:master.img
+bochs:build
 	bochs -q -f bochsrc
 
 # 这里需要更改格式化的硬盘！！
