@@ -23,6 +23,9 @@ int 0x10
 mov si,booting
 call Print
 
+mov si,readDiskMsg
+call Print
+
 ; 读取loader到内存
 ; 0x5XX ~ 0x7c00是计算机的OS Load Area
 ; 内存分布: https://www.ruanyifeng.com/blog/2015/09/0x7c00.html
@@ -35,8 +38,6 @@ call ReadDisk
 mov ax,[LOADER_BASE_ADDR]
 cmp ax,0xaa55
 jne ErrorOccur
-
-call BochsMagicBreak
 
 ; 跳转到loader
 jmp LOADER_BASE_ADDR+2
@@ -125,6 +126,9 @@ ReadDisk:
         jmp $+2
         jmp $+2     ; 直接跳转到下一行，用于产生延迟
         jmp $+2     ; 产生的延迟比nop多
+
+        mov si,readDiskMsg
+        call Print
 
         and al,0b1000_1000
         cmp al,0b0000_1000
@@ -260,11 +264,12 @@ ErrorOccur:
     hlt ; CPU停止
     jmp $ ; 阻塞
     .msg:
-        dd "Booting Error Occured!:(",10,13,0
+        db "Booting Error Occured!:(",10,13,0
 booting:
     ; 10,13,0 : \n \r \0
     db "Booting Qnix...",10,13,0
-
+readDiskMsg:
+    db "Reading Disk...",10,13,0
 FillSector:
     ; 填充 0 到 510字节
     ; $ 当前行字节偏移

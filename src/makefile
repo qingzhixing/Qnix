@@ -20,18 +20,28 @@ build:master.img
 bochs:build
 	bochs -q -f bochsrc
 
+.PHONY: bochs_usb
+bochs_usb:
+	bochs -q -f bochsrc_usb
+
 # 这里需要更改格式化的硬盘！！
 USB_DEVICE = /dev/sdb
-.PHONY:usb
-usb:boot.bin $(USB_DEVICE)
+
+.PHONY:usb_MBR
+usb_MBR:boot.bin $(USB_DEVICE)
 # 读取主引导扇区
 	sudo dd if=$(USB_DEVICE) of=temp.bin bs=512 count=1 conv=notrunc
 # 转移数据来避免无权限编辑
 	cp temp.bin usb.bin
-	sudo rm temp.bin
 # 写MBR，但是不覆盖主引导扇区，所以只复制446字节
 	dd if=boot.bin of=usb.bin bs=446 count=1 conv=notrunc
 # 回写
 	sudo sudo dd if=usb.bin of=$(USB_DEVICE) bs=512 count=1 conv=notrunc
 
+	lsblk
+
+MAX_LOADER_BLOCK_USE = 10
+.PHONY:usb_boot
+usb_boot:usb_MBR loader.bin $(USB_DEVICE)
+	sudo dd if=loader.bin of=$(USB_DEVICE) bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
 	lsblk

@@ -24,4 +24,4 @@ Print:
         ret
 
 loaderMessage:
-    dd "Loaded into loader!^_^",10,13,0
+    db "Loaded into loader!^_^",10,13,0
