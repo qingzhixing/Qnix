@@ -28,6 +28,11 @@ mov ecx,0
 mov bl,1
 call ReadDisk
 
+mov edi,0x1000
+mov ecx,2
+mov bl,1
+call WriteDisk
+
 call BochsMagicBreak
 
 ; 阻塞
@@ -147,7 +152,105 @@ ReadDisk:
 
     ret
 
+
+; 写入磁盘
+; 初始化操作:
+;   edi: 要写入硬盘的内存的起始地址
+;   ecx: 写入的起始扇区(LBA28模式)
+;   bl: 写入的扇区数
+WriteDisk:
+    ;0x1F2：读写扇区的数量
+    mov dx,0x1f2
+    mov al,bl
+    out dx,al
+
+    ;0x1F3：读写扇区起始地址0~7位
+    mov dx,0x1f3
+    mov al,cl
+    out dx,al
+
+    ;0x1F4：读写扇区起始地址8~15位
+    mov dx,0x1f4
+    shr ecx,8
+    mov al,cl
+    out dx,al
+
+    ;0x1F5：读写扇区起始地址16~23位
+    mov dx,0x1f5
+    shr ecx,8
+    mov al,cl
+    out dx,al
+
+    ;0x1F6：Device寄存器
+    ;   0 ~ 3：起始扇区的 24 ~ 27 位
+    ;   4: 0 主盘, 1 从片
+    ;   6: 0 CHS, 1 LBA
+    ;   5 ~ 7：固定为1
+    mov dx,0x1f6
+    shr ecx,8
+    ; 取最开始3bit
+    and cl,0b111;
+    mov al,cl
+    or al,0b1110_0000   ; 主盘 LBA模式
+    out dx,al
+
+    ;0x1F7：out时:Command寄存器
+    mov dx,0x1f7
+    mov al,0x30         ; 写硬盘
+    out dx,al
+
+    ; 清空
+    xor ecx,ecx
+    ; 得到读写扇区的数量
+    mov cl,bl
+
+    ; 读取硬盘
+
+    ; 等待数据准备完毕
+    ; 0x1F7: in时，作为Status寄存器
+    mov dx,0x1f7
+    .CheckStatus:
+        in al,dx
+        jmp $+2
+        jmp $+2     ; 直接跳转到下一行，用于产生延迟
+        jmp $+2     ; 产生的延迟比nop多
+
+        and al,0b1000_0000
+        cmp al,0b0000_0000
+        ; 第七位为0，不繁忙则准备完毕:
+        ;    0 ERR
+        ;    3 DRQ 数据准备完毕
+        ;    7 BSY 硬盘繁忙
+        ; 否则继续等待
+        jne .CheckStatus
+
+    ; 循环写入
+    .WriteOneBlock:
+        ; 备份ecx
+        push ecx
+
+        ; 0x1F0: Data寄存器
+        mov dx,0x1f0
+        mov cx,256; 一个扇区256字(512Byte)
+        .WriteDW:
+            mov ax,[edi]
+            out dx,ax
+            jmp $+2
+            jmp $+2
+            jmp $+2    ; delay
+
+            add edi,2
+            loop .WriteDW
+        
+        ; 读取结束，恢复ecx
+        pop ecx
+        loop .WriteOneBlock
+
+    ret
+
     
+
+
 
 booting:
     ; 10,13,0 : \n \r \0
