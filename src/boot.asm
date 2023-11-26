@@ -61,9 +61,6 @@ Print:
     .Done:
         ret
 
-BochsMagicBreak:
-    xchg bx,bx
-    ret
 
 ; 读取磁盘
 ; 初始化操作:
