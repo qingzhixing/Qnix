@@ -90,7 +90,7 @@ ReadDisk:
     mov al,cl
     out dx,al
 
-    ;0x1F6：Device寄存器
+    ;0x1F6：Device寄存器:
     ;   0 ~ 3：起始扇区的 24 ~ 27 位
     ;   4: 0 主盘, 1 从片
     ;   6: 0 CHS, 1 LBA
