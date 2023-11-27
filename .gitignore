@@ -35,6 +35,7 @@
 *.disk
 *.img
 *.bin
+*.lock
 bx_enh_dbg.ini
 
 # vscode
