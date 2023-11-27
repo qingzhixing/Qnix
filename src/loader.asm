@@ -84,6 +84,9 @@ DetectMemory:
         xchg bx,bx
         mov [totalMemBytes], edx
 
+mov si,preparingProtectModeMessage
+call Print
+
 jmp PrepareProtectMode
 
 ; 打印字符串
@@ -115,6 +118,9 @@ ErrorOccur:
     jmp $ ; 阻塞
     .msg:
         db "Loading Error Occured! :(",10,13,0
+
+preparingProtectModeMessage:
+    db "Preparing Protect Mode O_O",10,13,0
 
 PrepareProtectMode:
     jmp $; TODO: 写到这里停了
