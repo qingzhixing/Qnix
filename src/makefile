@@ -57,22 +57,18 @@ bochs_usb:
 
 # 这里需要更改格式化的硬盘！！
 USB_DEVICE = /dev/sdb
-
-.PHONY:usb_MBR
-usb_MBR:$(BUILD)/boot/boot.bin $(USB_DEVICE)
-# 读取主引导扇区
-	sudo dd if=$(USB_DEVICE) of=temp.bin bs=512 count=1 conv=notrunc
-# 转移数据来避免无权限编辑
-	cp temp.bin usb.bin
-# 写MBR，但是不覆盖主引导扇区，所以只复制446字节
-	dd if=boot.bin of=usb.bin bs=446 count=1 conv=notrunc
-# 回写
-	sudo sudo dd if=usb.bin of=$(USB_DEVICE) bs=512 count=1 conv=notrunc
-
-	lsblk
-
-MAX_LOADER_BLOCK_USE = 10
+MAX_LOADER_BLOCK_USE = 300
 .PHONY:usb_boot
-usb_boot:usb_MBR $(BUILD)/boot/loader.bin $(USB_DEVICE)
-	sudo dd if=loader.bin of=$(USB_DEVICE) bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
+usb_boot:$(BUILD)/master.img $(USB_DEVICE)
+# 处理主引导扇区
+	sudo dd if=$(USB_DEVICE) of=$(BUILD)/temp.bin bs=512 count=1 conv=notrunc
+# 转移数据来避免无权限编辑
+	cp $(BUILD)/temp.bin $(BUILD)/usb.bin
+# 写MBR，但是不覆盖主引导扇区，所以只复制446字节
+	dd if=$(BUILD)/boot/boot.bin of=$(BUILD)/usb.bin bs=446 count=1 conv=notrunc
+# 将master.img第一扇区替换为usb.bin(含有分区表)
+	dd if=$(BUILD)/usb.bin of=$(BUILD)/master.img bs=512 count=1 conv=notrunc
+# 回写
+	sudo sudo dd if=$(BUILD)/master.img of=$(USB_DEVICE) bs=512 count=$(MAX_LOADER_BLOCK_USE) conv=notrunc
+
 	lsblk
