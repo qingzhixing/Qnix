@@ -1,20 +1,29 @@
-%.bin:%.asm
+BUILD := ../build
+SRC := .
+
+
+$(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
+	$(shell mkdir -p $(dir $@))
 	nasm -f bin $< -o $@
 
 LOADER_SECTOR_LBA = 2
 LOADER_SECTOR_COUNT = 4
-master.img:boot.bin loader.bin
-	yes | bximage -q -hd=16M -mode=create -sectsize=512 -imgmode=flat master.img
-	dd if=boot.bin of=master.img bs=512 count=1 conv=notrunc
-	dd if=loader.bin of=master.img bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
+$(BUILD)/master.img:\
+		$(BUILD)/boot/boot.bin\
+		$(BUILD)/boot/loader.bin
+	yes | bximage -q -hd=16M -mode=create -sectsize=512 -imgmode=flat $@
+	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
+	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
+
+.PHONY: test
+test:$(BUILD)/boot/loader.bin
 
 .PHONY: clean
 clean:
-	rm -f *.bin
-	rm -f *.img
+	rm -rf $(BUILD)
 
 .PHONY: build
-build:master.img
+build:$(BUILD)/master.img
 
 .PHONY: bochs
 bochs:build
@@ -28,7 +37,7 @@ bochs_usb:
 USB_DEVICE = /dev/sdb
 
 .PHONY:usb_MBR
-usb_MBR:boot.bin $(USB_DEVICE)
+usb_MBR:$(BUILD)/boot/boot.bin $(USB_DEVICE)
 # 读取主引导扇区
 	sudo dd if=$(USB_DEVICE) of=temp.bin bs=512 count=1 conv=notrunc
 # 转移数据来避免无权限编辑
@@ -42,6 +51,6 @@ usb_MBR:boot.bin $(USB_DEVICE)
 
 MAX_LOADER_BLOCK_USE = 10
 .PHONY:usb_boot
-usb_boot:usb_MBR loader.bin $(USB_DEVICE)
+usb_boot:usb_MBR $(BUILD)/boot/loader.bin $(USB_DEVICE)
 	sudo dd if=loader.bin of=$(USB_DEVICE) bs=512 count=$(LOADER_SECTOR_COUNT) seek=$(LOADER_SECTOR_LBA) conv=notrunc
 	lsblk
