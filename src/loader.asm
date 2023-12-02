@@ -81,7 +81,6 @@ DetectMemory:
             .next_ards:
                 loop .FindMaxMemSize
 
-        xchg bx,bx
         mov [totalMemBytes], edx
 
 mov si,preparingProtectModeMessage
@@ -123,7 +122,46 @@ preparingProtectModeMessage:
     db "Preparing Protect Mode O_O",10,13,0
 
 PrepareProtectMode:
-    jmp $; TODO: 写到这里停了
+    xchg bx,bx
+    
+    cli; 关闭中断
+
+    ; 打开A20总线
+    in al,0x92
+    or al,0b10; 第二位置为1
+    out 0x92,al
+
+    ; 加载 GDT
+    lgdt [gdtPtr]
+
+    ; 打开保护模式
+    mov eax,cr0
+    or eax,1
+    mov cr0,eax
+
+    ; 刷新cpu流水线
+    jmp codeSelector:StartProtectMode
+
+[bits 32]
+StartProtectMode:
+    xchg bx,bx
+    ; 初始化段寄存器
+    mov ax,dataSelector
+    mov ds,ax
+    mov es,ax
+    mov fs,ax
+    mov gs,ax
+    mov ss,ax
+
+    ; 初始化栈
+    mov esp,0x10000 ; 之后内核加载到的地址(0x7e00~0x9fb00都可用)
+
+    mov byte [0xb8000], 'Q'
+    mov byte [0x200000], 'Q' ; 尝试修改2M处地址
+    
+    jmp $ ; 阻塞
+
+
 
 ; Selector:
 ; RPL: 00,TI:0 全局描述符,index:GDT1
