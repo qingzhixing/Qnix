@@ -125,12 +125,47 @@ preparingProtectModeMessage:
 PrepareProtectMode:
     jmp $; TODO: 写到这里停了
 
+; Selector:
+; RPL: 00,TI:0 全局描述符,index:GDT1
+codeSelector equ (1<<3)
+; RPL: 00,TI:1 全局描述符,index:GDT2
+dataSelector equ (2<<3)
+
+; GDT Const
+memoryBase equ 0        ; 内存开始的地址，基地址
+granulary equ 1         ; 内存粒度:4K
+; 内存界限: 4G / 4K -1
+memoryLimit equ ((4*1024*1024*1024)/(4*1024))-1
+
+gdtPtr:
+    dw (gdtEnd-gdtBase)-1; gdt长度
+    dd gdtBase; gdt地址
+
 ; 存放gdt数组(每个8字节)
-gdt_base:
+gdtBase:
     ; GDT0: 全0,NULL
     dd 0,0
+gdtCode:
     ; GDT1: 代码段
-; TODO 继续写GDT
+    dw memoryLimit & 0xffff; 段界限 0~15位
+    dw memoryBase & 0xffff; 段基地址 0~15位
+    db (memoryBase >> 16) & 0xff; 段基地址 16~23位
+    ; 存在内存中 - dpl0 - 用户段 - 代码段:非依从 - 可读 - 未被访问
+    db 0b_1_00_1_1010
+    ; 4K粒度，32位，非64位，Avalable随便写，段界限16~19位
+    db 0b_1_1_0_0_0000 | (memoryLimit >> 16) & 0xf
+    db (memoryBase >> 24) & 0xff; 段基地址 24~31位
+gdtData:
+    ; GDT2: 数据段
+    dw memoryLimit & 0xffff; 段界限 0~15位
+    dw memoryBase & 0xffff; 段基地址 0~15位
+    db (memoryBase >> 16) & 0xff; 段基地址 16~23位
+    ; 存在内存中 - dpl0 - 用户段 - 数据段:向上扩展 - 可写 - 未被访问
+    db 0b_1_00_1_0010
+    ; 4K粒度，32位，非64位，Avalable随便写，段界限16~19位
+    db 0b_1_1_0_0_0000 | (memoryLimit >> 16) & 0xf
+    db (memoryBase >> 24) & 0xff; 段基地址 24~31位
+gdtEnd:
 
 ; 总内存容量 32Byte (包括操作系统不可用的内存)
 totalMemBytes dd 0
