@@ -1,6 +1,11 @@
 ; Loader Const
 LOADER_BASE_ADDR equ 0x1000
 
+; Kernel Const
+KERNEL_BASE_ADDR equ 0x10000
+KERNEL_SECTOR_LBA equ 10
+KERNEL_SECTOR_COUNT equ 200
+
 [org LOADER_BASE_ADDR]
 
 dw 0xaa55   ; 用于判断是否加载成功
@@ -122,8 +127,6 @@ preparingProtectModeMessage:
     db "Preparing Protect Mode O_O",10,13,0
 
 PrepareProtectMode:
-    xchg bx,bx
-    
     cli; 关闭中断
 
     ; 打开A20总线
@@ -144,7 +147,6 @@ PrepareProtectMode:
 
 [bits 32]
 StartProtectMode:
-    xchg bx,bx
     ; 初始化段寄存器
     mov ax,dataSelector
     mov ds,ax
@@ -158,10 +160,131 @@ StartProtectMode:
 
     mov byte [0xb8000], 'Q'
     mov byte [0x200000], 'Q' ; 尝试修改2M处地址
+
+    ; 读取kernel
+    mov edi,KERNEL_BASE_ADDR
+    mov ecx,KERNEL_SECTOR_LBA
+    mov bl,KERNEL_SECTOR_COUNT
+    call ReadDisk
     
+    xchg bx,bx
+
+    ; 跳转到kernel
+    jmp codeSelector:KERNEL_BASE_ADDR
+
+    ud2 ; 表示出错，事实上我们不可能执行到这个地方
+
     jmp $ ; 阻塞
 
+; 读取磁盘
+; 初始化操作:
+;   edi: 读取到的对应内存
+;   ecx: 读取的起始扇区(LBA28模式)
+;   bl: 读取的扇区数
+ReadDisk:
+    ;0x1F2：读写扇区的数量
+    mov dx,0x1f2
+    mov al,bl
+    out dx,al
 
+    ;0x1F3：读写扇区起始地址0~7位
+    mov dx,0x1f3
+    mov al,cl
+    out dx,al
+
+    ;0x1F4：读写扇区起始地址8~15位
+    mov dx,0x1f4
+    shr ecx,8
+    mov al,cl
+    out dx,al
+
+    ;0x1F5：读写扇区起始地址16~23位
+    mov dx,0x1f5
+    shr ecx,8
+    mov al,cl
+    out dx,al
+
+    ;0x1F6：Device寄存器:
+    ;   0 ~ 3：起始扇区的 24 ~ 27 位
+    ;   4: 0 主盘, 1 从片
+    ;   6: 0 CHS, 1 LBA
+    ;   5 ~ 7：固定为1
+    mov dx,0x1f6
+    shr ecx,8
+    ; 取最开始3bit
+    and cl,0b111;
+    mov al,cl
+    or al,0b1110_0000   ; 主盘 LBA模式
+    out dx,al
+
+    ;0x1F7：out时:Command寄存器
+    mov dx,0x1f7
+    mov al,0x20         ; 读硬盘
+    out dx,al
+
+    ; 清空
+    xor ecx,ecx
+    ; 得到读写扇区的数量
+    mov cl,bl
+
+    ; 读取硬盘
+
+    ; 等待数据准备完毕
+    ; 0x1F7: in时，作为Status寄存器
+    mov dx,0x1f7
+    .CheckStatus:
+        in al,dx
+        jmp $+2
+        jmp $+2     ; 直接跳转到下一行，用于产生延迟
+        jmp $+2     ; 产生的延迟比nop多
+
+        ; 判断是否产生错误
+        push dx
+        mov dx,ax
+        and dl,0b0000_0001
+        cmp dl,0b0000_0001
+        pop dx
+        
+        jne .Else
+        call .ShowErrorMsg
+
+        .Else:
+
+        and al,0b1000_1000
+        cmp al,0b0000_1000
+        ; 第七位为0，第三位为1则准备完毕:
+        ;    0 ERR
+        ;    3 DRQ 数据准备完毕
+        ;    7 BSY 硬盘繁忙
+        ; 否则继续等待
+        jne .CheckStatus
+
+    ; 循环读取
+    .ReadOneBlock:
+        ; 备份ecx
+        push ecx
+
+        ; 0x1F0: Data寄存器
+        mov dx,0x1f0
+        mov cx,256; 一个扇区256字(512Byte)
+        .ReadDW:
+            in ax,dx
+            mov [edi],ax
+            add edi,2
+            loop .ReadDW
+        
+        ; 读取结束，恢复ecx
+        pop ecx
+        loop .ReadOneBlock
+
+    ret
+    .ShowErrorMsg:
+        mov si,diskErrorMsg
+        call Print
+        ret
+
+diskErrorMsg:
+    db "Disk Error Occured :(",10,13,0
 
 ; Selector:
 ; RPL: 00,TI:0 全局描述符,index:GDT1

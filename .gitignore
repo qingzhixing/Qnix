@@ -36,7 +36,11 @@
 *.img
 *.bin
 *.lock
+*.map
 bx_enh_dbg.ini
 
 # vscode
 .vscode
+
+#build
+build/*
