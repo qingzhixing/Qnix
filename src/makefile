@@ -69,6 +69,10 @@ build:$(BUILD)/master.img
 bochs:build
 	bochs -q -f bochsrc
 
+.PHONY: bochs-gdb
+bochs-gdb:build
+	../bochs/bin/bochs -q -f bochsrc.gdb
+
 .PHONY: bochs_usb
 bochs_usb:
 	bochs -q -f bochsrc_usb
