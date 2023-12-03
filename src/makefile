@@ -65,12 +65,17 @@ clean:
 .PHONY: build
 build:$(BUILD)/master.img
 
+.PHONY: qemu
+qemu:build
+	bochs -q -f bochsrc
+
 .PHONY: bochs
 bochs:build
 	bochs -q -f bochsrc
 
 .PHONY: bochs-gdb
 bochs-gdb:build
+	rm -f $(BUILD)/*.lock
 	../bochs/bin/bochs -q -f bochsrc.gdb
 
 .PHONY: bochs_usb

@@ -1,5 +1,5 @@
-#include "../inlucde/qnix/qnix.h"
-#include "../inlucde/qnix/stdint.h"
+#include <qnix/qnix.h>
+#include <qnix/stdint.h>
 
 int magic = QNIX_MAGIC;
 char message[] = "Hello Qnix ^~^!"; // .data
