@@ -1,0 +1,29 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "C/C++: gcc.exe build active file",  // 编译任务的名称，跟上面preLaunchTask的值对应
+            "command": "/usr/bin/gcc",
+            "args": [  // 编译器执行时的参数，跟手动编译时输入的内容基本一致，主要是多了-g参数，以加入调试信息
+                // "-fdiagnostics-color=always",
+                "-m32",
+                "-g",
+                "-I${workspaceFolder}/src/include",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.out"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

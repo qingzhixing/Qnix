@@ -40,7 +40,7 @@
 bx_enh_dbg.ini
 
 # vscode
-.vscode
+# .vscode
 
 #build
 build/*
