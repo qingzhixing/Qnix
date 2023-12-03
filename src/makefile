@@ -66,15 +66,28 @@ clean:
 build:$(BUILD)/master.img
 
 .PHONY: qemu
-qemu:build
-	bochs -q -f bochsrc
+qemu:$(BUILD)/master.img
+# -boot c指第一个硬盘,ab为软盘,d位CD-ROM
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $<
+
+.PHONY: qemu-gdb
+qemu-gdb:$(BUILD)/master.img
+# -boot c指第一个硬盘,ab为软盘,d位CD-ROM
+	qemu-system-i386 \
+	-m 32M \
+	-s -S \
+	-boot c \
+	-hda $<
 
 .PHONY: bochs
-bochs:build
+bochs:$(BUILD)/master.img
 	bochs -q -f bochsrc
 
 .PHONY: bochs-gdb
-bochs-gdb:build
+bochs-gdb:$(BUILD)/master.img
 	rm -f $(BUILD)/*.lock
 	../bochs/bin/bochs -q -f bochsrc.gdb
 

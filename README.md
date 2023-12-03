@@ -20,9 +20,17 @@ Bochs x86 Emulator 2.6.11
 
 请手动编译以开启bochs-dbg功能
 
+项目里有bochs-gdb一键式安装（安装到项目文件夹中)，请在运行 `make bochs-gdb`前运行
+
 [Bochs2.6.11配置安装参考](https://www.cnblogs.com/oasisyang/archive/2021/09/30/15358137.html "Bochs2.6.11配置安装参考")
 
 **NASM** version 2.14.02
+
+**qemu:**
+
+[QEMU安装参考(记得开翻译机)](https://wiki.qemu.org/Hosts/Linux)
+
+qemu git: `git@github.com:qemu/qemu.git`
 
 ## 如何运行
 
