@@ -166,8 +166,6 @@ StartProtectMode:
     mov ecx,KERNEL_SECTOR_LBA
     mov bl,KERNEL_SECTOR_COUNT
     call ReadDisk
-    
-    xchg bx,bx
 
     ; 跳转到kernel
     jmp codeSelector:KERNEL_BASE_ADDR

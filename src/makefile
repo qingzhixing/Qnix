@@ -1,6 +1,18 @@
 BUILD = ../build
 SRC = .
 
+CFLAGS = -m32 # 32位程序
+CFLAGS += -fno-builtin # 不需要gcc内置函数 (如memcpy)
+CFLAGS += -nostdinc # 不需要标准头文件
+CFLAGS += -fno-pic # 不需要位置无关的代码
+CFLAGS += -fno-pie # 不需要位置无关的可执行程序
+CFLAGS += -nostdlib # 不需要标准库
+CFLAGS += -fno-stack-protector # 不需要栈保护
+CFLAGS := $(strip $(CFLAGS))
+
+DEBUG = -g
+INCLUDE = -I $(SRC)/include
+
 
 $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 	$(shell mkdir -p $(dir $@))
@@ -8,13 +20,19 @@ $(BUILD)/boot/%.bin: $(SRC)/boot/%.asm
 
 $(BUILD)/kernel/%.o: $(SRC)/kernel/%.asm
 	$(shell mkdir -p $(dir $@))
-	nasm -f elf32 $< -o $@
+	nasm -f elf32 $(DEBUG) $< -o $@
+	
+$(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
+	$(shell mkdir -p $(dir $@))
+	gcc $(CFLAGS) $(DEBUG) $(INCLUDE) -c $< -o $@
 
 # 链接
 ENTRYPOINT = 0x10000
-$(BUILD)/kernel.bin: $(BUILD)/kernel/start.o
+$(BUILD)/kernel.bin: \
+		$(BUILD)/kernel/start.o\
+		$(BUILD)/kernel/main.o
 	$(shell mkdir -p $(dir $@))
-	ld -m elf_i386 -static $< -o $@ -Ttext $(ENTRYPOINT)
+	ld -m elf_i386 -static $^ -o $@ -Ttext $(ENTRYPOINT)
 
 # 省去对elf文件处理步骤，直接跳转运行即可
 # 所有的标号和可重定位信息都会被去掉
@@ -33,7 +51,7 @@ $(BUILD)/master.img:\
 	yes | bximage -q -hd=16M -mode=create -sectsize=512 -imgmode=flat $@
 	dd if=$(BUILD)/boot/boot.bin of=$@ bs=512 count=1 conv=notrunc
 	dd if=$(BUILD)/boot/loader.bin of=$@ bs=512 count=4 seek=2 conv=notrunc
-	# 内核大小约100k(200扇区)
+# 内核大小约100k(200扇区)
 	dd if=$(BUILD)/system.bin of=$@ bs=512 count=200 seek=10 conv=notrunc
 
 
@@ -71,4 +89,4 @@ usb_boot:$(BUILD)/master.img $(USB_DEVICE)
 # 回写
 	sudo sudo dd if=$(BUILD)/master.img of=$(USB_DEVICE) bs=512 count=$(MAX_LOADER_BLOCK_USE) conv=notrunc
 
-	lsblk
+	lsblk 
