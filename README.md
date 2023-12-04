@@ -28,6 +28,11 @@ Bochs x86 Emulator 2.6.11
 
 **qemu:**
 
+qemu 在进入保护模式代码那里会重启，我也不知道为什么
+
+QEMU emulator version 8.1.92 (v8.2.0-rc2-6-g29b5d70cb7)
+Copyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers
+
 [QEMU安装参考(记得开翻译机)](https://wiki.qemu.org/Hosts/Linux)
 
 qemu git: `git@github.com:qemu/qemu.git`
