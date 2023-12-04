@@ -142,8 +142,10 @@ PrepareProtectMode:
     or eax,1
     mov cr0,eax
 
+    ; jmp $
+
     ; 刷新cpu流水线
-    jmp codeSelector:StartProtectMode
+    jmp dword codeSelector:StartProtectMode
 
 [bits 32]
 StartProtectMode:
