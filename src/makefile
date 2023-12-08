@@ -112,3 +112,9 @@ usb_boot:$(BUILD)/master.img $(USB_DEVICE)
 	sudo sudo dd if=$(BUILD)/master.img of=$(USB_DEVICE) bs=512 count=$(MAX_LOADER_BLOCK_USE) conv=notrunc
 
 	lsblk 
+
+$(BUILD)/master.vmdk: $(BUILD)/master.img
+	qemu-img convert -O vmdk $< $@
+
+.PHONY:vmdk
+vmdk:$(BUILD)/master.vmdk
