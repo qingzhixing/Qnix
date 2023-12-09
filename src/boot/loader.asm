@@ -91,7 +91,24 @@ DetectMemory:
 mov si,preparingProtectModeMessage
 call Print
 
-jmp PrepareProtectMode
+PrepareProtectMode:
+    cli; 关闭中断
+
+    ; 打开A20总线
+    in al,0x92
+    or al,0b10; 第二位置为1
+    out 0x92,al
+
+    ; 加载 GDT
+    lgdt [gdtPtr]
+
+    ; 打开保护模式
+    mov eax,cr0
+    or eax,1
+    mov cr0,eax
+
+    ; 刷新cpu流水线
+    jmp dword codeSelector:StartProtectMode
 
 ; 打印字符串
 ; 调用方法: 将字符串地址存入 si
@@ -126,26 +143,7 @@ ErrorOccur:
 preparingProtectModeMessage:
     db "Preparing Protect Mode O_O",10,13,0
 
-PrepareProtectMode:
-    cli; 关闭中断
 
-    ; 打开A20总线
-    in al,0x92
-    or al,0b10; 第二位置为1
-    out 0x92,al
-
-    ; 加载 GDT
-    lgdt [gdtPtr]
-
-    ; 打开保护模式
-    mov eax,cr0
-    or eax,1
-    mov cr0,eax
-
-    ; jmp $
-
-    ; 刷新cpu流水线
-    jmp dword codeSelector:StartProtectMode
 
 [bits 32]
 StartProtectMode:
