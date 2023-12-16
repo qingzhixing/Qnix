@@ -12,5 +12,16 @@
 #define CRT_CURSOR_LOW 0xf
 
 void KernelInit() {
-    uint8_t data = inb(CRT_DATA_REG);
+    outb(CRT_ADDR_REG, CRT_CURSOR_HIGH);
+    uint8_t cursorHigh = inb(CRT_DATA_REG);
+    outb(CRT_ADDR_REG, CRT_CURSOR_LOW);
+    uint8_t cursorLow = inb(CRT_DATA_REG);
+    uint16_t cursorPos=
+        (uint16_t)(cursorHigh << 8) |
+        (uint16_t)(cursorLow);
+
+    outb(CRT_ADDR_REG,CRT_CURSOR_HIGH);
+    outb(CRT_DATA_REG, 0);
+    outb(CRT_ADDR_REG,CRT_CURSOR_LOW);
+    outb(CRT_DATA_REG, 0);
 }

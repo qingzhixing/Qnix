@@ -13,8 +13,6 @@ inb:
 
     jmp $+2 ; 延迟
 
-
-
     leave ; 恢复栈帧
     ret
 
@@ -23,6 +21,12 @@ global inw
 inw:
     push ebp
     mov ebp, esp; 保存栈帧
+
+    xor eax,eax
+    mov edx,[ebp + 8]; port
+    in ax,dx ; 将 端口号dx 中的数据 其中 16 bit 读入 ax
+
+    jmp $+2 ; 延迟
 
     leave ; 恢复栈帧
     ret
@@ -33,6 +37,13 @@ outb:
     push ebp
     mov ebp, esp; 保存栈帧
 
+    mov edx,[ebp + 8]; port
+    mov eax,[ebp + 12]; value
+
+    out dx,al ; 将 8 bit 数据 al 写入 端口号 dx
+
+    jmp $+2 ; 延迟
+
     leave ; 恢复栈帧
     ret
 
@@ -41,6 +52,13 @@ global outw
 outw:
     push ebp
     mov ebp, esp; 保存栈帧
+
+    mov edx,[ebp + 8]; port
+    mov eax,[ebp + 12]; value
+
+    out dx,ax ; 将 16 bit 数据 ax 写入 端口号 dx
+
+    jmp $+2 ; 延迟
 
     leave ; 恢复栈帧
     ret
