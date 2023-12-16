@@ -40,7 +40,7 @@ cmp ax,0xaa55
 jne ErrorOccur
 
 ; 跳转到loader
-jmp LOADER_BASE_ADDR+2
+jmp LOADER_BASE_ADDR+6
 
 ; 阻塞
 jmp $

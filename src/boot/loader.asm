@@ -10,7 +10,10 @@ KERNEL_SECTOR_COUNT equ 200
 
 dw 0xaa55   ; 用于判断是否加载成功
 
-mov si,loaderMessage
+; 总内存容量 32Byte (包括操作系统不可用的内存)
+totalMemBytes dd 0 ; 地址在 0x1002
+
+mov si,loaderMessage ; 0x1006
 call Print
 
 ;0xe820中断
@@ -325,9 +328,6 @@ gdtData:
     db 0b_1_1_0_0_0000 | (memoryLimit >> 16) & 0xf
     db (memoryBase >> 24) & 0xff; 段基地址 24~31位
 gdtEnd:
-
-; 总内存容量 32Byte (包括操作系统不可用的内存)
-totalMemBytes dd 0
 
 ;　ARDS Const
 ; ARDS结构字节数

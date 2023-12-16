@@ -7,5 +7,10 @@
 			"path": "reference/onix"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"C_Cpp.default.includePath": [
+			"./src/include"
+		],
+		"C_Cpp.default.compilerPath": ""
+	}
 }

@@ -5,6 +5,9 @@
 
 #define EOF -1
 
+// 字符串结尾
+#define EOS '\0'
+
 #define NULL 0
 #define nullptr NULL
 
