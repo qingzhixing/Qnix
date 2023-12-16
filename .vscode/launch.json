@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/kernel.bin",
             "args": [],
-            "stopAtEntry": true,
+            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false, // 是否启用外部控制台

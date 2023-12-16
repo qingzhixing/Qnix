@@ -30,7 +30,8 @@ $(BUILD)/kernel/%.o: $(SRC)/kernel/%.c
 ENTRYPOINT = 0x10000
 $(BUILD)/kernel.bin: \
 		$(BUILD)/kernel/start.o\
-		$(BUILD)/kernel/main.o
+		$(BUILD)/kernel/main.o\
+		$(BUILD)/kernel/io.o
 	$(shell mkdir -p $(dir $@))
 	ld -m elf_i386 -static $^ -o $@ -Ttext $(ENTRYPOINT)
 
