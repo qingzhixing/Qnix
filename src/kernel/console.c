@@ -126,7 +126,7 @@ static void Command_DEL(){
 
 static void CommonCharacter(char ch){
     char* cursorPtr=(char*)cursorMemPosition;
-    
+
     // 单行写满的情况
     if(cursorX >= WIDTH){
         cursorX -= WIDTH;
@@ -142,6 +142,43 @@ static void CommonCharacter(char ch){
     cursorX++;
 
     OutCursor();
+}
+
+
+// \r 将光标移动到当前行的开头
+static void Command_CR(){
+    SetCursor(0,cursorY);
+}
+
+// \t 将光标向左移动一个制表符宽度
+static void Command_HT(){
+
+}
+
+// 将显示器向上滚一行
+static void ScrollUp(){
+    if(screenDisplayBase+SCR_SIZE+ROW_SIZE<MEM_END){
+        // 清空新开拓的一行
+        uint32_t* newLineCharacter = (uint32_t*)(screenDisplayBase+SCR_SIZE);
+        for(uint32_t i = 0; i < WIDTH; i++){
+            *newLineCharacter++ = erase;
+        }
+        screenDisplayBase+=ROW_SIZE;
+        cursorMemPosition+=ROW_SIZE;
+    }
+    OutScreenDisplayBase();
+    OutCursor();
+}
+
+// \n 将光标移动到下一行
+static void Command_LF(){
+    if(cursorY+1<HEIGHT){
+        cursorY++;
+        cursorMemPosition+=ROW_SIZE;
+        OutCursor();
+        return;
+    }
+    ScrollUp();
 }
 
 void ConsoleWrite(char* buf,uint32_t count){
@@ -161,6 +198,7 @@ void ConsoleWrite(char* buf,uint32_t count){
             }
             // \a
             case BEL:{
+                //TODO:Unimplemented
                 break;
             }
             // \b
@@ -170,10 +208,13 @@ void ConsoleWrite(char* buf,uint32_t count){
             }
             // \t
             case HT:{
+                Command_HT();
                 break;
             }
             // \n
             case LF:{
+                Command_LF();
+                Command_CR();
                 break;
             }
             // \v
@@ -186,6 +227,7 @@ void ConsoleWrite(char* buf,uint32_t count){
             }
             // \r
             case CR:{
+                Command_CR();
                 break;
             }
             case DEL:{
