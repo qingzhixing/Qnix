@@ -109,4 +109,94 @@ void ConsoleClear(){
 void ConsoleInit(){
     ConsoleClear();
 }
-void ConsoleWrite(char* buf,uint32_t count);
+
+// \b 退格
+static void Command_BS(){
+    if(cursorX > 0){
+        cursorX--;
+        cursorMemPosition -= 2;
+        *((uint16_t*)cursorMemPosition)=erase;
+        OutCursor();
+    }
+}
+
+static void Command_DEL(){
+    *((uint16_t*)cursorMemPosition)=erase;
+}
+
+static void CommonCharacter(char ch){
+    char* cursorPtr=(char*)cursorMemPosition;
+    
+    // 单行写满的情况
+    if(cursorX >= WIDTH){
+        cursorX -= WIDTH;
+        cursorY++;
+    }
+    // 写字符
+    *cursorPtr++ = ch;
+    // 写属性
+    *cursorPtr++ = attribute;
+
+    // 改变光标位置
+    cursorMemPosition += 2;
+    cursorX++;
+
+    OutCursor();
+}
+
+void ConsoleWrite(char* buf,uint32_t count){
+    // 我们要输出的字符串
+    char ch;
+    while(count--){
+        ch = *buf++;
+        switch(ch){
+            case NUL:{
+                break;
+            }
+            case ENQ:{
+                break;
+            }
+            case ESC:{
+                break;
+            }
+            // \a
+            case BEL:{
+                break;
+            }
+            // \b
+            case BS:{
+                Command_BS();
+                break;
+            }
+            // \t
+            case HT:{
+                break;
+            }
+            // \n
+            case LF:{
+                break;
+            }
+            // \v
+            case VT:{
+                break;
+            }
+            // \f
+            case FF:{
+                break;
+            }
+            // \r
+            case CR:{
+                break;
+            }
+            case DEL:{
+                Command_DEL();
+                break;
+            }
+
+            default:{
+                CommonCharacter(ch);
+                break;
+            }
+        }
+    }
+}
