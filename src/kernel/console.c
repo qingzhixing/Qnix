@@ -1,5 +1,6 @@
 #include <qnix/console.h>
 #include <qnix/io.h>
+#include <qnix/string.h>
 
 #define CRT_ADDR_REG 0x3D4 // CRT(6845)索引寄存器
 #define CRT_DATA_REG 0x3D5 // CRT(6845)数据寄存器
@@ -165,6 +166,10 @@ static void ScrollUp(){
         }
         screenDisplayBase+=ROW_SIZE;
         cursorMemPosition+=ROW_SIZE;
+    }
+    else{
+        memcpy((void*)MEM_BASE,(void*)screenDisplayBase,SCR_SIZE);
+        SetCursor(0,0);
     }
     OutScreenDisplayBase();
     OutCursor();

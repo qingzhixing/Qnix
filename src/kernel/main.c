@@ -5,7 +5,7 @@
 char message[] = "Hello Qnix Console!\n";
 void KernelInit() {
     ConsoleInit();
-    for(int i=1;i<=30;i++){
+    while(true){
         ConsoleWrite(message,strlen(message));
     }
 }
