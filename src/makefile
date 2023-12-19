@@ -34,6 +34,7 @@ $(BUILD)/kernel.bin: \
 		$(BUILD)/kernel/io.o\
 		$(BUILD)/kernel/console.o\
 		$(BUILD)/kernel/printk.o\
+		$(BUILD)/kernel/assert.o\
 		$(BUILD)/lib/string.o\
 		$(BUILD)/lib/vsprintf.o
 	$(shell mkdir -p $(dir $@))
@@ -61,7 +62,7 @@ $(BUILD)/master.img:\
 
 
 .PHONY: test
-test:$(BUILD)/kernel.bin
+test:$(BUILD)/kernel/main.o
 
 .PHONY: clean
 clean:
