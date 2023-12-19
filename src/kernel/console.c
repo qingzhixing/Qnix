@@ -18,6 +18,9 @@
 #define ROW_SIZE (WIDTH * 2)          // 每行字节数
 #define SCR_SIZE (ROW_SIZE * HEIGHT)  // 屏幕字节数
 
+// 制表符宽度
+#define TAB_SIZE 4
+
 #define NUL 0x00
 #define ENQ 0x05
 #define ESC 0x1B // ESC
@@ -153,7 +156,8 @@ static void Command_CR(){
 
 // \t 将光标向左移动一个制表符宽度
 static void Command_HT(){
-
+    if(cursorX <= TAB_SIZE)return;
+    SetCursor(cursorX-TAB_SIZE,cursorY);
 }
 
 // 将显示器向上滚一行

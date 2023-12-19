@@ -2,7 +2,7 @@
 #include <qnix/console.h>
 #include <qnix/string.h>
 
-char message[] = "Hello Qnix Console!\n";
+char message[] = "Hello Qnix\t Console!\n";
 void KernelInit() {
     ConsoleInit();
     while(true){
